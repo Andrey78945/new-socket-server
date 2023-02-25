@@ -3,6 +3,7 @@ import { v4 as uuidV4 } from "uuid";
 
 const rooms: Record<string, Record<string, User>> = {};
 const chats: Record<string, Message[]> = {};
+const inNet: string[] = [];
 
 interface User {
   peerId: string;
@@ -37,6 +38,8 @@ export const roomHandler = (socket: Socket) => {
   const joinRoom = ({ roomId, peerId, userName }: JoinRoomParams) => {
     if (!rooms[roomId]) rooms[roomId] = {};
     if (!chats[roomId]) chats[roomId] = [];
+    inNet.push(peerId);
+    console.log("innet", inNet);
 
     socket.emit("get-messages", chats[roomId]);
 
@@ -54,6 +57,11 @@ export const roomHandler = (socket: Socket) => {
     });
 
     socket.on("disconnect", () => {
+      const index = inNet.indexOf(peerId);
+      if (index > -1) {
+        inNet.splice(index, 1);
+      }
+      console.log("innet", inNet);
       console.log(`user: ${peerId} left the room`);
       leaveRoom({ roomId, peerId });
     });
